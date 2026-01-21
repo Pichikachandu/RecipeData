@@ -100,11 +100,14 @@ exports.getRecipes = async (req, res) => {
  * @desc    Search recipes with filters
  * @route   GET /api/recipes/search
  * @access  Public
- * @query   {string} [q] - Search query string
+ * @query   {string} [title] - Search by recipe title (partial match)
  * @query   {string} [cuisine] - Filter by cuisine
- * @query   {number} [minRating] - Minimum rating (1-5)
- * @query   {number} [maxPrepTime] - Maximum preparation time in minutes
- * @query   {number} [maxCookTime] - Maximum cooking time in minutes
+ * @query   {number} [rating] - Filter by rating (greater than, less than, or equal to)
+ * @query   {string} [ratingOp] - Rating operator: 'gte' (>=), 'lte' (<=), 'eq' (=)
+ * @query   {number} [calories] - Filter by calories
+ * @query   {string} [caloriesOp] - Calories operator: 'gte' (>=), 'lte' (<=), 'eq' (=)
+ * @query   {number} [total_time] - Filter by total time
+ * @query   {string} [timeOp] - Total time operator: 'gte' (>=), 'lte' (<=), 'eq' (=)
  * @query   {number} [page=1] - Page number
  * @query   {number} [limit=10] - Number of items per page
  * @query   {string} [sortBy=rating] - Field to sort by
@@ -113,7 +116,7 @@ exports.getRecipes = async (req, res) => {
 exports.searchRecipes = async (req, res) => {
   try {
     // Get query parameters
-    const { q, cuisine, minRating, maxPrepTime, maxCookTime } = req.query;
+    const { title, cuisine, rating, ratingOp, calories, caloriesOp, total_time, timeOp } = req.query;
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
@@ -121,12 +124,9 @@ exports.searchRecipes = async (req, res) => {
     // Build search query
     const query = {};
 
-    // Text search (case-insensitive search in title and description)
-    if (q) {
-      query.$or = [
-        { title: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } }
-      ];
+    // Text search by title (case-insensitive)
+    if (title) {
+      query.title = { $regex: title, $options: 'i' };
     }
 
     // Filter by cuisine (case-insensitive)
@@ -134,27 +134,44 @@ exports.searchRecipes = async (req, res) => {
       query.cuisine = { $regex: cuisine, $options: 'i' };
     }
 
-    // Filter by minimum rating (1-5)
-    if (minRating) {
-      const rating = parseFloat(minRating);
-      if (!isNaN(rating) && rating >= 1 && rating <= 5) {
-        query.rating = { $gte: rating };
+    // Helper function to build filter operators
+    const buildOperatorQuery = (value, operator) => {
+      const num = parseFloat(value);
+      if (isNaN(num)) return null;
+      
+      switch(operator) {
+        case 'gte':
+          return { $gte: num };
+        case 'lte':
+          return { $lte: num };
+        case 'eq':
+          return num;
+        default:
+          return { $gte: num }; // default to greater than or equal
+      }
+    };
+
+    // Filter by rating
+    if (rating) {
+      const ratingQuery = buildOperatorQuery(rating, ratingOp || 'gte');
+      if (ratingQuery !== null) {
+        query.rating = ratingQuery;
       }
     }
 
-    // Filter by maximum preparation time (in minutes)
-    if (maxPrepTime) {
-      const prepTime = parseInt(maxPrepTime, 10);
-      if (!isNaN(prepTime) && prepTime > 0) {
-        query.prep_time = { $lte: prepTime };
+    // Filter by calories (stored in nutrients.calories)
+    if (calories) {
+      const caloriesQuery = buildOperatorQuery(calories, caloriesOp || 'gte');
+      if (caloriesQuery !== null) {
+        query['nutrients.calories'] = caloriesQuery;
       }
     }
 
-    // Filter by maximum cooking time (in minutes)
-    if (maxCookTime) {
-      const cookTime = parseInt(maxCookTime, 10);
-      if (!isNaN(cookTime) && cookTime > 0) {
-        query.cook_time = { $lte: cookTime };
+    // Filter by total time
+    if (total_time) {
+      const timeQuery = buildOperatorQuery(total_time, timeOp || 'lte');
+      if (timeQuery !== null) {
+        query.total_time = timeQuery;
       }
     }
 

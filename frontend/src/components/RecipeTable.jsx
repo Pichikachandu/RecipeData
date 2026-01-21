@@ -40,6 +40,8 @@ const RecipeTable = ({
     title: '',
     cuisine: '',
     rating: '',
+    calories: '',
+    total_time: '',
   });
 
   const handleSearch = (e) => {
@@ -71,7 +73,8 @@ const RecipeTable = ({
     { id: 'title', label: 'Title', minWidth: 200 },
     { id: 'cuisine', label: 'Cuisine', minWidth: 150 },
     { id: 'rating', label: 'Rating', minWidth: 150, align: 'center' },
-    { id: 'totalTime', label: 'Total Time (min)', minWidth: 100, align: 'right' },
+    { id: 'calories', label: 'Calories', minWidth: 100, align: 'right' },
+    { id: 'total_time', label: 'Total Time (min)', minWidth: 100, align: 'right' },
     { id: 'servings', label: 'Serves', minWidth: 100, align: 'right' },
   ];
 
@@ -184,7 +187,28 @@ const RecipeTable = ({
                   fullWidth
                 />
               </TableCell>
-              <TableCell />
+              <TableCell align="right">
+                <TextField
+                  size="small"
+                  type="number"
+                  placeholder="Calories"
+                  value={filters.calories}
+                  onChange={handleFilterChange('calories')}
+                  inputProps={{ min: 0 }}
+                  fullWidth
+                />
+              </TableCell>
+              <TableCell align="right">
+                <TextField
+                  size="small"
+                  type="number"
+                  placeholder="Max time (min)"
+                  value={filters.total_time}
+                  onChange={handleFilterChange('total_time')}
+                  inputProps={{ min: 0 }}
+                  fullWidth
+                />
+              </TableCell>
               <TableCell />
             </TableRow>
           </TableHead>
@@ -217,6 +241,7 @@ const RecipeTable = ({
                     </Typography>
                   </Box>
                 </TableCell>
+                <TableCell align="right">{recipe.nutrients?.calories ? `${recipe.nutrients.calories}` : '-'}</TableCell>
                 <TableCell align="right">{recipe.total_time ? `${recipe.total_time} min` : '-'}</TableCell>
                 <TableCell align="right">{recipe.serves || '-'}</TableCell>
               </TableRow>

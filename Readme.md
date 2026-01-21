@@ -124,6 +124,197 @@ recipe-app/
 - **Lazy loading** for better initial load time
 - Optimized **MongoDB queries** with proper indexing
 
+## 📋 Submission Instructions
+
+### 1. Code Submission
+The complete source code is available in this Git repository, which includes:
+
+- **JSON Parsing Logic**: The backend includes seed script (`backend/seed.js`) that parses the JSON recipe data file (`US_recipes_null.Pdf.json`)
+- **Database Storage**: Recipes are stored in MongoDB with proper schema validation using Mongoose
+- **RESTful APIs**: Complete set of APIs for CRUD operations and recipe management
+
+**Key Files:**
+- Backend Logic: [backend/server.js](backend/server.js)
+- Database Models: [backend/models/Recipe.js](backend/models/Recipe.js)
+- API Routes: [backend/routes/recipeRoutes.js](backend/routes/recipeRoutes.js)
+- Controllers: [backend/controllers/recipeController.js](backend/controllers/recipeController.js)
+- Data Seeding: [backend/seed.js](backend/seed.js)
+
+### 2. Database Setup
+
+#### MongoDB Schema
+The Recipe schema is defined in [backend/models/Recipe.js](backend/models/Recipe.js):
+
+```javascript
+{
+  name: String (required),
+  cuisine: String,
+  prepTime: Number,
+  cookTime: Number,
+  totalTime: Number,
+  ingredients: [String],
+  instructions: String,
+  rating: Number,
+  servings: Number,
+  calories: Number,
+  createdAt: Date (auto-generated)
+}
+```
+
+#### Database Setup Instructions
+
+1. **Install MongoDB**
+   - Download from [mongodb.com](https://www.mongodb.com/try/download/community)
+   - Or use MongoDB Atlas for cloud hosting
+
+2. **Configure Environment Variables**
+   Create a `.env` file in the backend directory:
+   ```
+   MONGODB_URI=mongodb://localhost:27017/recipe-db
+   PORT=5000
+   NODE_ENV=development
+   ```
+
+3. **Seed the Database**
+   ```bash
+   cd backend
+   npm install
+   node seed.js
+   ```
+   This will parse `US_recipes_null.Pdf.json` and populate the MongoDB database with recipe data.
+
+### 3. API Testing
+
+#### Base URL
+```
+http://localhost:5000/api/recipes
+```
+
+#### Endpoints & Examples
+
+**Get All Recipes (Paginated)**
+```http
+GET /api/recipes?page=1&limit=10
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "Classic Pancakes",
+      "cuisine": "American",
+      "prepTime": 10,
+      "cookTime": 15,
+      "totalTime": 25,
+      "ingredients": ["flour", "eggs", "milk"],
+      "instructions": "Mix ingredients...",
+      "rating": 4.5,
+      "servings": 4,
+      "calories": 350,
+      "createdAt": "2024-01-21T10:30:00Z"
+    }
+  ],
+  "total": 5000,
+  "page": 1,
+  "pages": 500
+}
+```
+
+**Get Recipe by ID**
+```http
+GET /api/recipes/507f1f77bcf86cd799439011
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "Classic Pancakes",
+    "cuisine": "American",
+    "prepTime": 10,
+    "cookTime": 15,
+    "totalTime": 25,
+    "ingredients": ["flour", "eggs", "milk"],
+    "instructions": "Mix all ingredients...",
+    "rating": 4.5,
+    "servings": 4,
+    "calories": 350,
+    "createdAt": "2024-01-21T10:30:00Z"
+  }
+}
+```
+
+**Search Recipes**
+```http
+GET /api/recipes/search?q=pancake&cuisine=American&minRating=4
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "Classic Pancakes",
+      "cuisine": "American",
+      "rating": 4.5,
+      "prepTime": 10,
+      "totalTime": 25
+    }
+  ],
+  "total": 3
+}
+```
+
+#### Testing Tools
+
+Use any of these tools to test the API:
+
+1. **Postman**
+   - Import the API endpoints
+   - Test with different query parameters
+   - Verify response status and data
+
+2. **cURL**
+   ```bash
+   # Get all recipes
+   curl http://localhost:5000/api/recipes?page=1&limit=10
+
+   # Get specific recipe
+   curl http://localhost:5000/api/recipes/507f1f77bcf86cd799439011
+
+   # Search recipes
+   curl "http://localhost:5000/api/recipes/search?q=pancake&cuisine=American"
+   ```
+
+3. **Frontend Application**
+   - Access the web interface at `http://localhost:5173`
+   - Browse recipes, view details, and search
+
+#### Running Tests
+
+```bash
+# Start backend server
+cd backend
+npm install
+npm run dev
+
+# In another terminal, start frontend
+cd frontend
+npm install
+npm run dev
+
+# Access application
+# Frontend: http://localhost:5173
+# Backend API: http://localhost:5000/api/recipes
+```
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:

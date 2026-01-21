@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -43,13 +43,33 @@ const RecipeTable = ({
     calories: '',
     total_time: '',
   });
+  const debounceTimerRef = useRef(null);
+
+  // Debounced search function
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      onSearch({
+        q: searchTerm,
+        ...filters,
+      });
+    }, 500); // Wait 500ms after user stops typing
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [filters, searchTerm, onSearch]);
 
   const handleSearch = (e) => {
-    e.preventDefault();
-    onSearch({
-      q: searchTerm,  // Changed from 'search' to 'q' to match backend expectation
-      ...filters,
-    });
+    if (e) {
+      e.preventDefault();
+    }
+    // Search is now handled by debounced useEffect
   };
 
   const handleFilterChange = (field) => (event) => {
@@ -58,7 +78,7 @@ const RecipeTable = ({
       [field]: event.target.value,
     };
     setFilters(newFilters);
-    onSearch(newFilters);
+    // Debounced search is now handled by the useEffect hook above
   };
 
   const handleSort = (property) => {
@@ -119,7 +139,7 @@ const RecipeTable = ({
                     size="small"
                     onClick={() => {
                       setSearchTerm('');
-                      onSearch({ q: '' });
+                      onSearch({ q: '', ...filters });
                     }}
                     edge="end"
                   >

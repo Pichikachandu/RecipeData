@@ -159,11 +159,13 @@ exports.searchRecipes = async (req, res) => {
       }
     }
 
-    // Filter by calories (stored in nutrients.calories)
+    // Filter by calories (stored in nutrients.calories, needs regex for string comparison)
     if (calories) {
-      const caloriesQuery = buildOperatorQuery(calories, caloriesOp || 'gte');
-      if (caloriesQuery !== null) {
-        query['nutrients.calories'] = caloriesQuery;
+      const caloriesNum = parseFloat(calories);
+      if (!isNaN(caloriesNum)) {
+        // Since calories are stored as strings, we need to use regex or convert
+        // For now, use $regex to match the number
+        query['nutrients.calories'] = { $regex: calories.toString(), $options: 'i' };
       }
     }
 
